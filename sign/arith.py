@@ -10,7 +10,11 @@ def fastexp(x: int, e: int, mod: int) -> int:
     return ans
 
 def egcd(x: int, y: int) -> tuple[int, int, int]:
-    """ Extended GCD """
+    """
+        Extended Euclidean Algorithm
+        Returns (a, b, d) such that ax + bd = d,
+        and d = gcd(x, y)
+    """
     if y == 0:
         return 1, 0, x
     q, r = divmod(x, y)

@@ -1,11 +1,10 @@
 from . import miller_rabin
 from .arith import fastexp, modinverse
-from base64 import b64encode, b64decode
 from collections import namedtuple
 
 KEY_SIZE = 1024 # bits
 PublicKey = namedtuple("PrivateKey", ['n', 'e'])
-SecretKey = namedtuple("SecretKey", ['n', 'd', 'p', 'q'])
+SecretKey = namedtuple("SecretKey", ['n', 'd'])
 
 def gen_keys(key_size=KEY_SIZE):
     p = miller_rabin.new_prime(key_size)
@@ -16,7 +15,7 @@ def gen_keys(key_size=KEY_SIZE):
     while phi % e == 0:
         e = miller_rabin.new_prime(16)
     d = modinverse(e, phi)
-    return PublicKey(n, e), SecretKey(n, d, p, q), phi
+    return PublicKey(n, e), SecretKey(n, d), phi
 
 def encrypt_block(m: int, pk: PublicKey):
     assert(m < pk.n)
