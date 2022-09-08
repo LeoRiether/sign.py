@@ -2,7 +2,7 @@ import secrets
 import multiprocessing
 import os
 
-from arith import fastexp
+from .arith import fastexp
 
 def randint(lo: int, hi: int):
     return lo + secrets.randbelow(hi - lo + 1)
