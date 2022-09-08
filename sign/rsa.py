@@ -1,12 +1,12 @@
-from . import miller_rabin
-from .arith import fastexp, modinverse
+import miller_rabin
+from arith import fastexp, modinverse
 from collections import namedtuple
 
-KEY_SIZE = 1024 # bits
-PublicKey = namedtuple("PrivateKey", ['n', 'e'])
+KEY_LEN = 1024 # bits
+PublicKey = namedtuple("PublicKey", ['n', 'e'])
 SecretKey = namedtuple("SecretKey", ['n', 'd'])
 
-def gen_keys(key_size=KEY_SIZE):
+def gen_keys(key_size=KEY_LEN):
     p = miller_rabin.new_prime(key_size)
     q = miller_rabin.new_prime(key_size)
     n = p * q
@@ -17,10 +17,7 @@ def gen_keys(key_size=KEY_SIZE):
     d = modinverse(e, phi)
     return PublicKey(n, e), SecretKey(n, d), phi
 
-def encrypt_block(m: int, pk: PublicKey):
-    assert(m < pk.n)
-    return fastexp(m, pk.e, pk.n)
+def process(m: int, key: PublicKey | SecretKey):
+    assert(m < key.n)
+    return fastexp(m, key[1], key.n)
 
-def decrypt_block(m: int, sk: SecretKey):
-    assert(m < sk.n)
-    return fastexp(m, sk.d, sk.n)

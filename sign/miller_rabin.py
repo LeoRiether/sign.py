@@ -2,7 +2,7 @@ import secrets
 import multiprocessing
 import os
 
-from .arith import fastexp
+from arith import fastexp
 
 def randint(lo: int, hi: int):
     return lo + secrets.randbelow(hi - lo + 1)
@@ -47,7 +47,7 @@ def probably_prime(n: int, iterations=10):
 # without any concurrency.
 # Calls `when_found(prime)` when a prime is found
 def new_prime_sync(bits: int, when_found=lambda x: x):
-    seed = secrets.randbelow(1 << bits)
+    seed = secrets.randbits(bits)
     if seed % 2 == 0: # seed should be odd
         seed += 1
 
@@ -101,4 +101,5 @@ def benchmark(bits = [64, 128, 256, 512, 1024, 2048]):
 if __name__ == '__main__':
     # benchmark()
     print(new_prime())
+
 
