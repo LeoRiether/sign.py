@@ -1,8 +1,8 @@
+from . import rsa
 from base64 import b64encode
 import argparse
 import hashlib
 import sha3 # monkey patches hashlib...
-import rsa
 import struct
 import sys
 
@@ -31,8 +31,8 @@ if __name__ == '__main__':
     digest = sha.digest()
     digest_as_int = 0
     for byte in digest:
-        digest_as_int *= 256
-        digest_as_int += int(byte)
+        digest_as_int <<= 8
+        digest_as_int |= int(byte)
 
     log(f"hexdigest = {sha.hexdigest()}\n\n")
     log(f"digest_as_int = {digest_as_int}\n\n")

@@ -1,10 +1,10 @@
 .PHONY: main prime test
 
 main:
-	python3 sign/sign.py
+	python3 -m sign.sign
 
 test:
-	PYTHONPATH=./sign pytest
+	pytest
 
 prime:
-	python3 sign/miller_rabin.py
+	python3 -m sign.miller_rabin

@@ -1,5 +1,5 @@
-import miller_rabin
-from arith import fastexp, modinverse
+from . import miller_rabin
+from .arith import fastexp, modinverse
 from collections import namedtuple
 
 KEY_LEN = 1024 # bits
