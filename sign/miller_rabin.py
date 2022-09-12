@@ -23,8 +23,8 @@ small_primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41,
 # Returns whether the Miller-Rabin primality test thinks an integer
 # `n` is prime
 def probably_prime(n: int, iterations=32):
-    if n < 4:
-        return n == 2 or n == 3
+    if n < 100:
+        return any(n == p for p in small_primes)
 
     if any(n % p == 0 for p in small_primes):
         return False
