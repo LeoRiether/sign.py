@@ -1,5 +1,6 @@
-from .util import once
 from . import galois_field as gf
+from .util import once
+import secrets
 
 ################################################################################
 #                                 Bitwise Xor {{{                              #
@@ -156,6 +157,7 @@ def encrypt_block(block: bytearray, key: bytes, rounds: int = 10):
     shift_rows(block)
     bitwise_xor(block, expkey[16*rounds:16*(rounds+1)])
 
+# I don't use this anywhere, actually
 def decrypt_block(block: bytearray, key: bytes, rounds: int = 10):
     """ Decrypts a 16-byte block with AES """
     assert len(block) == 16
@@ -173,7 +175,7 @@ def decrypt_block(block: bytearray, key: bytes, rounds: int = 10):
     bitwise_xor(block, expkey[:16])
 
 def encrypt_ctr(data: bytearray, key: bytes, nonce: int, rounds: int = 10):
-    """ Encrypts an arbitrary blob of data with AES """
+    """ Encrypts (or decrypts) an arbitrary blob of data with AES """
 
     # Pad data to a length multiple of 16 bytes
     while len(data) % 16 != 0:

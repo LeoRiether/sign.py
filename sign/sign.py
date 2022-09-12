@@ -1,8 +1,7 @@
 from . import rsa
 from base64 import b64encode
 import argparse
-import hashlib
-import sha3 # monkey patches hashlib...
+from sha3 import sha3_512
 import struct
 import sys
 
@@ -20,7 +19,7 @@ if __name__ == '__main__':
             sys.stderr.write(str(a))
 
     # Hash input file
-    sha = hashlib.sha3_512()
+    sha = sha3_512()
     if args.input:
         with open(args.input, 'br') as f:
             sha.update(f.read())

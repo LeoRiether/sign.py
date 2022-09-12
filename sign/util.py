@@ -1,5 +1,11 @@
 from functools import wraps
 
+def bitwise_xor(x: bytearray, y: bytes):
+    """ Does x[i] := x[i] ^ y[i] for every byte in x """
+    assert len(x) == len(y)
+    for i in range(len(x)):
+        x[i] ^= y[i]
+
 def once(f):
     """
         Used as a decorator to make a function run only once
