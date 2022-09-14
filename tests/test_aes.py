@@ -105,7 +105,6 @@ def test_ctr_size():
         k = secrets.token_bytes(16)
         nonce = secrets.randbits(16)
 
-        expected_size = (n + 15) // 16 * 16
         aes.encrypt_ctr(i, k, nonce)
-        assert len(i) == expected_size 
+        assert len(i) == n
 

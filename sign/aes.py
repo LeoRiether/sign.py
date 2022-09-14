@@ -171,18 +171,15 @@ def decrypt_block(block: bytearray, key: bytes, rounds: int = 10):
 def encrypt_ctr(data: bytearray, key: bytes, nonce: int, rounds: int = 10):
     """ Encrypts (or decrypts) an arbitrary blob of data with AES """
 
-    # Pad data to a length multiple of 16 bytes
-    while len(data) % 16 != 0:
-        data.append(0)
-
     for i in range(0, len(data), 16):
         # Encrypt the nonce
         block = bytearray(nonce.to_bytes(16, byteorder='big'))
         encrypt_block(block, key, rounds)
 
         # xor it with the original data
-        bitwise_xor(block, data[i:i+16])
-        data[i:i+16] = block
+        last = min(i+16, len(data))
+        for j in range(i, last):
+            data[j] ^= block[j-i]
 
         nonce += 1
 
