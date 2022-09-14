@@ -1,3 +1,4 @@
+from random import randint
 import sign.aes as aes
 import secrets
 
@@ -9,7 +10,7 @@ def to_bytearray(x, n):
     return bytearray(y)
 
 def rand_bytearray(n):
-    return to_bytearray(secrets.randbits(n * 8), n)
+    return bytearray(secrets.token_bytes(n))
 
 def test_sub_bytes():
     # only 1 testcase actually /shrug
@@ -78,8 +79,8 @@ def test_mix_columns_inversibility():
 
 def test_block_encription_inversibility():
     for _ in range(20):
-        i = to_bytearray(secrets.randbits(128), 16)
-        k = secrets.randbits(128).to_bytes(16, 'big')
+        i = bytearray(secrets.token_bytes(16))
+        k = secrets.token_bytes(128 // 8)
         e = bytearray(i)
 
         aes.encrypt_block(i, k)
@@ -88,11 +89,23 @@ def test_block_encription_inversibility():
 
 def test_ctr_inversibility():
     for _ in range(20):
-        i = to_bytearray(secrets.randbits(1024), 1024//8)
-        k = secrets.randbits(128).to_bytes(16, 'big')
+        i = bytearray(secrets.token_bytes(1024 // 8))
+        k = secrets.token_bytes(128 // 8)
         nonce = secrets.randbits(16)
         e = bytearray(i)
 
         aes.encrypt_ctr(i, k, nonce)
         aes.encrypt_ctr(i, k, nonce)
         assert i == e
+
+def test_ctr_size():
+    for _ in range(30):
+        n = randint(1, 200)
+        i = bytearray(secrets.token_bytes(n))
+        k = secrets.token_bytes(16)
+        nonce = secrets.randbits(16)
+
+        expected_size = (n + 15) // 16 * 16
+        aes.encrypt_ctr(i, k, nonce)
+        assert len(i) == expected_size 
+

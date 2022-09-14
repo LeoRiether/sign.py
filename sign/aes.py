@@ -1,17 +1,11 @@
 from . import galois_field as gf
-from .util import once
+from .util import once, bitwise_xor
 import secrets
 
-################################################################################
-#                                 Bitwise Xor {{{                              #
-################################################################################
-def bitwise_xor(x: bytearray, y: bytes):
-    """ Does x[i] := x[i] ^ y[i] for every byte in x """
-    assert len(x) == len(y)
-    for i in range(len(x)):
-        x[i] ^= y[i]
-
-# }}}
+def gen_key(bits: int = 128):
+    key = secrets.token_bytes(bits // 8)
+    nonce = secrets.randbits(128)
+    return key, nonce
 
 ################################################################################
 #                                  Sub Bytes {{{                               #
@@ -190,6 +184,17 @@ def encrypt_ctr(data: bytearray, key: bytes, nonce: int, rounds: int = 10):
         bitwise_xor(block, data[i:i+16])
         data[i:i+16] = block
 
+        nonce += 1
+
+def stream_ctr(stream, key: bytes, nonce: int, rounds: int = 10):
+    """ Encrypts (or decrypts) a stream of bytes with AES """
+    while True:
+        data = bytearray(stream.read(16))
+        if len(data) == 0:
+            break
+
+        encrypt_ctr(data, key, nonce, rounds)
+        yield data
         nonce += 1
 
 # }}}
