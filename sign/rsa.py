@@ -1,3 +1,4 @@
+from __future__ import annotations
 from . import miller_rabin
 from .arith import fastexp, modinverse
 from collections import namedtuple

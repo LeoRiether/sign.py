@@ -1,3 +1,4 @@
+from . import rsa
 from functools import wraps
 
 def bitwise_xor(x: bytearray, y: bytes):
@@ -5,6 +6,15 @@ def bitwise_xor(x: bytearray, y: bytes):
     assert len(x) == len(y)
     for i in range(len(x)):
         x[i] ^= y[i]
+
+def bitsz(x):
+    """ How many bits does it take to represent `x` in memory? """
+    from math import log2, ceil
+    if isinstance(x, int):
+        return int(ceil(log2(x)))
+    if isinstance(x, rsa.PublicKey) or isinstance(x, rsa.SecretKey):
+        return int(ceil(log2(x.n)))
+    return len(x) * 8
 
 def once(f):
     """
