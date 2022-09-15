@@ -44,10 +44,10 @@ if __name__ == '__main__':
     hash, key, nonce_bytes = get_rsa(rsa_msg, sk)
     nonce = int.from_bytes(nonce_bytes, 'big')
     msg = get_aes(aes_msg, key, nonce)
-    hash = sha3_512(msg).digest()
+    expected_hash = sha3_512(msg).digest()
 
     # Log some variable values
-    logged_vars = "key nonce sk msg aes_msg hash rsa_msg".split()
+    logged_vars = "key nonce sk msg aes_msg rsa_msg hash expected_hash".split()
     values = locals()
     for k in logged_vars:
         log(f"{k} = {values[k]} ({bitsz(values[k])} bits)\n\n")
@@ -56,3 +56,11 @@ if __name__ == '__main__':
     print(msg)
     log('-' * 80 + '\n')
 
+    if hash != expected_hash:
+        print("  HASHES DID NOT MATCH  ".center(80, '!'))
+        print(f"Expected <{expected_hash.hex()}>")
+        print(f"Got      <{hash.hex()}>")
+        print("!" * 80)
+    else:
+        print("Ok: hashes match")
+            
