@@ -7,10 +7,8 @@ import sys
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Cryptographically sign a document')
-    parser.add_argument('-i', '--input', help='Input file')
-    parser.add_argument('-k', '--key', help='Key file')
-    parser.add_argument('-v', '--verbose', action="store_true",
-                        help='Shows more stuff')
+    parser.add_argument('-i', '--input', help='File you want to sign')
+    parser.add_argument('-k', '--key', help='Output (secret) key file')
     return parser.parse_args()
 
 def gen_keys():
@@ -37,8 +35,7 @@ def get_rsa(msg: bytes, pk: rsa.PublicKey) -> bytes:
 if __name__ == '__main__':
     args = parse_args()
     def log(a):
-        if args.verbose:
-            sys.stderr.write(str(a))
+        sys.stderr.write(str(a))
 
     key, nonce, pk, sk = gen_keys()
     nonce_bytes = nonce.to_bytes(128 // 8, 'big')

@@ -8,10 +8,8 @@ import sys
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Verify a criptographically signed document')
-    parser.add_argument('-i', '--input', help='Input file')
+    parser.add_argument('-i', '--input', help='Criptographically signed file')
     parser.add_argument('-k', '--key', help='Secret key file', required=True)
-    parser.add_argument('-v', '--verbose', action="store_true",
-                        help='Shows more stuff')
     return parser.parse_args()
 
 def read_input(file):
@@ -36,8 +34,7 @@ def get_rsa(msg: bytes, sk: rsa.SecretKey) -> tuple[bytes, bytes, bytes]:
 if __name__ == '__main__':
     args = parse_args()
     def log(a):
-        if args.verbose:
-            sys.stderr.write(str(a))
+        sys.stderr.write(str(a))
 
     sk = read_key(args.key)
     aes_msg, rsa_msg = read_input(args.input)
@@ -53,7 +50,11 @@ if __name__ == '__main__':
         log(f"{k} = {values[k]} ({bitsz(values[k])} bits)\n\n")
 
     log("message:".ljust(80, '-') + '\n')
-    print(msg)
+    if args.output:
+        with open(args.output, 'wb') as f:
+            f.write(msg)
+    else:
+        print(msg.decode('utf-8'))
     log('-' * 80 + '\n')
 
     if hash != expected_hash:
