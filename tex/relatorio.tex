@@ -3,7 +3,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                  Header {{{                                  %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\documentclass[conference]{IEEEtran}
+\documentclass[a4paper, 10.5pt]{article}
 % \IEEEoverridecommandlockouts
 % The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
 % \usepackage{cite}
@@ -17,18 +17,26 @@
 \usepackage{microtype}
 \usepackage{natbib}
 \usepackage{listings}
+\usepackage{todonotes}
+\usepackage{indentfirst}
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
 
+\providecommand{\keywords}[1]
+{
+  \small	
+  \textbf{\textit{Palavras chave---}} #1
+}
+
 \title{Implementação de Assinatura Digital em Python}
 
-\author{\IEEEauthorblockN{Leonardo Alves Riether}
-\IEEEauthorblockA{\textit{Dep. Ciência da Computação} \\
-\textit{Universidade de Brasilia}\\
-Brasília, Brasil \\
-190032413@aluno.unb.br}
+\author{Leonardo Alves Riether \\
+    \textit{Dep. Ciência da Computação} \\
+    \textit{Universidade de Brasilia}\\
+    Brasília, Brasil \\
+    190032413@aluno.unb.br
 }
 
 \maketitle
@@ -39,13 +47,13 @@ Brasília, Brasil \\
 %                                 Abstract {{{                                 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
-    % TODO:
+    \todo{Escrever o abstract!}
 \end{abstract}
 
-\begin{IEEEkeywords}
-    % TODO:
-\end{IEEEkeywords}
+\keywords{Criptografia, AES, RSA, OAEP, SHA3, Assinatura, Digital}
 % }}}
+
+\listoftodos
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                Relatório {{{                                 %
@@ -54,29 +62,156 @@ Brasília, Brasil \\
 
 % }}}
 
+\section{Visão Geral} % {{{
+\label{sec:visao-geral}
+    Neste trabalho foi implementado um gerador e verificador de assinaturas
+    digitais.
+
+    O gerador de assinaturas \verb|sign.py| executa os seguintes passos:
+
+    \begin{enumerate}
+        \item Dada uma mensagem a ser assinada
+        \item Gera as chaves do AES e do RSA
+        \item Cifra a mensagem com AES
+        \item Gera o hash SHA3 de 512 bits da mensagem original
+        \item Processa o bloco $hash \textbar chave do aes \textbar nonce do aes$
+            com OAEP, onde $\textbar$ é a operação de concatenação.
+        \item Cifra o resultado com a chave pública do RSA
+        \item Escreve a mensagem cifrada com AES na saída padrão e a chave
+            privada em um arquivo de chave, ambos codificados em base64
+    \end{enumerate}
+
+    O procedimento de verificação em \verb|verify.py| faz o processo contrário e
+    verifica a integridade da mensagem, seguindo os passos
+
+    \begin{enumerate}
+        \item Dada uma mensagem criptografada e a chave privada do RSA
+        \item Decodifica o bloco $hash \textbar chave do aes \textbar nonce do aes$
+            com a chave privada, passando ele pelo OAEP.
+        \item Decodifica a mensagem cifrada com AES
+        \item Gera o hash SHA3 de 512 bits da mensagem decifrada
+        \item Compara o hash da mensagem decifrada com o hash esperado para
+            certificação de integridade
+    \end{enumerate}
+% }}}
+
+\section{Implementação} % {{{
+\label{sec:implementacao}
+    A implementação do algoritmo descrito em \ref{sec:visao-geral} foi realizada
+    em Python e testada em CPython 3.10.6. Supomos que versões anteriores da linguagem
+    também podem ser utilizadas, mas não foram realizados testes em relação a
+    isso.
+
+    Para execução do programa, são recomendados os seguintes passos:
+    \begin{enumerate}
+        \item Criação de um ambiente virtual, com o comando \verb|python3 -m venv venv|
+        \item Ativação do ambiente, com \verb|source venv/bin/activate|
+        \item Instalação de dependências do projeto, por meio de \\ \verb|pip install -r requirements.txt|
+        \item Execução do algoritmo de assinatura de um arquivo
+            \verb|input.txt|: \\ \verb|python3 -m sign.sign -i input.txt -k key.secret > output.aes|
+        \item Execução do algoritmo de verificação de assinatura: \\
+            \verb|python3 -m sign.verify -i output.aes -k key.secret|
+    \end{enumerate}
+
+    As opções disponíveis podem ser vistas por meio do comando \verb|python3 -m sign.sign --help| ou \verb|python3 -m sign.verify --help|.
+    Por padrão, o programa imprime os resultados na tela com cores. Para
+    desabilitar essa função, basta definir a variável de ambiente
+    \verb|NO_COLOR|, por exemplo: \verb|NO_COLOR=1 python3 -m sign.sign|.
+
+    \todo{explicar os arquivos}
+% }}}
+
+\section{SHA3} % {{{
+\label{sec:sha3}
+O hash SHA3 não foi implementado do zero. Em vez disso, foi empregada a biblioteca
+\textit{pysha3} \citep{pysha3}, que produz o hash de acordo com especificações.
+% SHA3 }}}
+
 \section{Rivest–Shamir–Adleman (RSA)} % {{{
+\todo{provavelmente algo aqui}
 
-% }}}
+\subsection{Geração de Chaves para o RSA} % {{{
+A geração das chaves pública e privada utiizadas no RSA é feita em algumas etapas:
 
-\section{Geração de Chaves para o RSA} % {{{
+Primeiro, são gerados dois números primos de 1024 bits, que chamaremos de $P$ e
+$Q$. Um primo é gerado da seguinte forma:
 
-\subsection{Algoritmo de Miller-Rabin}
+\begin{itemize}
+    \item É criada uma \textit{pool} de processos, visto que isso melhora a
+        performance do programa.
+    \item Cada processo gera um número aleatório ímpar de 1024 bits, usando uma função
+        \textit{built-in} do Python -- \verb|secrets.randbits(1024)|.
+    \item Os processos testam a primalidade do número gerado com o teste de
+        Miller-Rabin. Se o teste der negativo (número com certeza composto), o
+        número é incrementado em dois e repetimos a etapa corrente. Caso
+        contrário, foi encontrado um número provavelmente primo e essa é a saída
+        da função. O algoritmo de Miller-Rabin é executado com 32 iterações, o
+        que nos dá uma confiança alta de que o número encontrado realmente é
+        primo.
+\end{itemize}
 
-% }}}
+O segundo passo é, dado $N = P \cdot Q$, gerar um número $e$ de 16 bits
+coprimo com $ \phi(N) = (P-1) \cdot (Q-1) $. Um número aleatório é gerado até que um coprimo seja
+encontrado. Com isso, temos a chave pública do RSA $(N, e)$.  
+
+Por último, precisamos encontrar o inverso multiplicativo de $e$ módulo
+$\phi(N)$. A fim disso, utilizamos o Algoritmo de Euclides estendido para
+resolver a equação diofantina $ed + \lambda \phi(N) = 1$, onde $d$ é o
+inverso modular de $e$. Feito isso, temos a chave privada $(N, d)$.
+
+% Geração de chaves }}}
+% RSA }}}
 
 \section{Optimal asymmetric encryption padding (OAEP)} % {{{
-
-% }}}
+\label{sec:oaep}
+    
+% Optimal asymmetric encryption padding (OAEP) }}}
 
 \section{Advanced Encryption Standard (AES)} % {{{
+\label{sec:aes}
+Foi implementado o algoritmo AES, também conhecido como Rijndael, para
+criptografar a mensagem de entrada. A chave do AES é um bloco de 128 bits
+aleatórios, gerados com \verb|secrets.token_bytes(16)|.
 
-% }}}
+A implementação de uma rodada da cifração AES pode ser encontrada na função
+\verb|encrypt_block|, que utiliza diversas funções auxiliares:
+\begin{itemize}
+  \item \verb|sub_bytes|: usa uma SBOX precalculada para substituir os bytes do
+      bloco;
+  \item \verb|shift_rows|: permuta o bloco por meio de um deslocamento cíclico
+      de cada uma de suas linhas;
+  \item \verb|mix_columns|: multiplica cada coluna do bloco por um polinômio,
+      interpretando a coluna também como um polinômio no corpo finito $GF(2^8)$.
+      A multiplicação entre elementos do corpo é implementada com tabelas de
+      consulta (definidas em \verb|sign/galois_field.py|), o que simplifica o código e aumenta a performance.
+\end{itemize} 
 
-\section{}
+Também foi implementada a função de extensão de chave, que \todo{this}
+
+O processo de decifração de um bloco também foi escrito, antes do autor perceber que ele não é utilizado no modo contador.
+
+\subsection{Modo contador} % {{{
+\label{sec:ctr}
+    O modo de operação utilizado com a criptografia AES foi o modo contador (CTR).
+    Assim, um \textit{nonce} aleatório de 128 bits é escolhido no início do
+    algoritmo e os blocos $nonce$, $nonce+1$, $nonce+2$, $dots$ são
+    criptografados com o AES e chave gerada anteriormente. É executado um ou
+    exclusivo (xor) entre os blocos da mensagem e os resultantes do $nonce$. O
+    resultado disso é mensagem cifrada.
+
+% Modo CTR }}}
+    
+% Advanced Encryption Standard (AES) }}}
+
+\section{Conclusão} % {{{
+\label{sec:conclusao}
+    
+% Conclusão }}}
 
 % \bibliographystyle{IEEEtran}
 \bibliographystyle{unsrtnat}
 \bibliography{bib}
 
 \end{document}
+
 
