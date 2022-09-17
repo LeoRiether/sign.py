@@ -1,5 +1,7 @@
 from . import rsa
 from functools import wraps
+from types import SimpleNamespace
+import os
 
 def bitwise_xor(x: bytearray, y: bytes):
     """ Does x[i] := x[i] ^ y[i] for every byte in x """
@@ -15,6 +17,23 @@ def bitsz(x):
     if isinstance(x, rsa.PublicKey) or isinstance(x, rsa.SecretKey):
         return int(ceil(log2(x.n)))
     return len(x) * 8
+
+colors_dict = dict(
+    red     = '\033[91m',
+    green   = '\033[92m',
+    yellow  = '\033[93m',
+    blue    = '\033[94m',
+    magenta = '\033[95m',
+    cyan    = '\033[96m',
+    white   = '\033[97m',
+    reset   = '\033[0m' ,
+)
+
+if 'NO_COLOR' in os.environ:
+    for k in colors_dict.keys():
+        colors_dict[k] = ''
+
+colors = SimpleNamespace(**colors_dict)
 
 def once(f):
     """

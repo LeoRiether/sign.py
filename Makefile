@@ -1,10 +1,13 @@
-.PHONY: main prime test
+.PHONY: sign verify prime test
 
-main:
+sign:
 	python3 -m sign.sign
 
+verify:
+	python3 -m sign.verify
+
 test:
-	pytest
+	pytest -v
 
 prime:
 	python3 -m sign.miller_rabin

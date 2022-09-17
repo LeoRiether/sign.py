@@ -1,6 +1,6 @@
 from . import rsa, oaep, aes
 from .sign import get_aes
-from .util import bitsz
+from .util import bitsz, colors as C
 from base64 import b64decode
 from sha3 import sha3_512
 import argparse
@@ -9,6 +9,7 @@ import sys
 def parse_args():
     parser = argparse.ArgumentParser(description='Verify a criptographically signed document')
     parser.add_argument('-i', '--input', help='Criptographically signed file')
+    parser.add_argument('-o', '--output', help='Output file')
     parser.add_argument('-k', '--key', help='Secret key file', required=True)
     return parser.parse_args()
 
@@ -49,19 +50,19 @@ if __name__ == '__main__':
     for k in logged_vars:
         log(f"{k} = {values[k]} ({bitsz(values[k])} bits)\n\n")
 
-    log("message:".ljust(80, '-') + '\n')
+    log(C.cyan + "message:".ljust(80, '-') + C.reset + '\n')
     if args.output:
         with open(args.output, 'wb') as f:
             f.write(msg)
     else:
         print(msg.decode('utf-8'))
-    log('-' * 80 + '\n')
+    log(C.cyan + '-' * 80 + C.reset + '\n')
 
     if hash != expected_hash:
-        print("  HASHES DID NOT MATCH  ".center(80, '!'))
-        print(f"Expected <{expected_hash.hex()}>")
-        print(f"Got      <{hash.hex()}>")
-        print("!" * 80)
+        print(C.red + "  HASHES DID NOT MATCH  ".center(80, '!') + C.reset)
+        print(f"{C.green}Expected <{C.reset}{expected_hash.hex()}{C.green}>{C.reset}")
+        print(f"{C.yellow}Got      <{C.reset}{hash.hex()}{C.yellow}>{C.reset}")
+        print(C.red + "!" * 80 + C.reset)
     else:
-        print("Ok: hashes match")
+        print(C.green + "Ok: hashes match" + C.reset)
             

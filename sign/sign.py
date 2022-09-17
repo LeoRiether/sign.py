@@ -1,5 +1,5 @@
 from . import rsa, oaep, aes
-from .util import bitsz
+from .util import bitsz, colors as C
 from base64 import b64encode
 from sha3 import sha3_512
 import argparse
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     logged_vars = "key nonce pk sk msg aes_msg hash rsa_msg".split()
     values = locals()
     for k in logged_vars:
-        log(f"{k} = {values[k]} ({bitsz(values[k])} bits)\n\n")
+        log(f"{k} = {values[k]} {C.cyan}({bitsz(values[k])} bits){C.reset}\n\n")
 
     if args.key:
         with open(args.key, 'wb') as f:
@@ -56,9 +56,9 @@ if __name__ == '__main__':
             d = int.to_bytes(sk.d, 2048 // 8, 'big')
             f.write(b64encode(n) + b'\n' + b64encode(d))
 
-    log("output:".ljust(80, '-') + '\n')
+    log(C.cyan + "output:".ljust(80, '-') + C.reset + '\n')
     print(b64encode(aes_msg).decode('utf-8'))
     print(b64encode(rsa_msg).decode('utf-8'))
     # print(b64encode(int.to_bytes(pk.n, 2048 // 8, 'big')).decode('utf-8'))
-    log('-' * 80 + '\n')
+    log(C.cyan + '-' * 80 + C.reset + '\n')
     
