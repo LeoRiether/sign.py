@@ -74,8 +74,8 @@
         \item Gera as chaves do AES e do RSA
         \item Cifra a mensagem com AES
         \item Gera o hash SHA3 de 512 bits da mensagem original
-        \item Processa o bloco $hash \textbar chave do aes \textbar nonce do aes$
-            com OAEP, onde $\textbar$ é a operação de concatenação.
+        \item Processa o bloco $\texttt{hash} | \texttt{chave do aes} | \texttt{nonce} $
+            com OAEP, onde $|$ é a operação de concatenação.
         \item Cifra o resultado com a chave pública do RSA
         \item Escreve a mensagem cifrada com AES na saída padrão e a chave
             privada em um arquivo de chave, ambos codificados em base64
@@ -86,7 +86,7 @@
 
     \begin{enumerate}
         \item Dada uma mensagem criptografada e a chave privada do RSA
-        \item Decodifica o bloco $hash \textbar chave do aes \textbar nonce do aes$
+        \item Decodifica o bloco $\texttt{hash} | \texttt{chave do aes} | \texttt{nonce} $
             com a chave privada, passando ele pelo OAEP.
         \item Decodifica a mensagem cifrada com AES
         \item Gera o hash SHA3 de 512 bits da mensagem decifrada
@@ -117,6 +117,22 @@
     Por padrão, o programa imprime os resultados na tela com cores. Para
     desabilitar essa função, basta definir a variável de ambiente
     \verb|NO_COLOR|, por exemplo: \verb|NO_COLOR=1 python3 -m sign.sign|.
+
+\subsection{Arquivos Importantes} % {{{
+\label{sec:arquivos}
+    Todos os scripts em Python se encontram no diretório \verb|sign/|. Alguns
+    arquivos importantes nele são:
+    \begin{itemize}
+        \item \verb|sign.py|: módulo principal do gerador de assinaturas
+        \item \verb|verify.py|: módulo prinpical do verificador de assinaturas
+        \item \verb|aes.py|, \verb|rsa.py|, \verb|oaep.py|,
+            \verb|miller_rabin.py|: implementação dos respectivos algoritmos
+        \item \verb|arith.py|: funções auxiliares de aritmética modular, como
+            Euclides estendido e exponenciação rápida
+        \item \verb|galois_field|: implementação de operações envolvendo
+            $GF(2^8)$
+    \end{itemize}
+% Arquivos Importantes }}}
 
     \todo{explicar os arquivos}
 % }}}
@@ -164,7 +180,21 @@ inverso modular de $e$. Feito isso, temos a chave privada $(N, d)$.
 
 \section{Optimal asymmetric encryption padding (OAEP)} % {{{
 \label{sec:oaep}
-    
+    A cifra "pura" de uma mensagem com RSA apresenta uma série de
+    vulnerabilidades, e uma forma de resolvê-las é empregando o esquema OAEP. 
+
+    Na implementação do OAEP foram fixados tamanhos de padding $k_0 = k_1 = 256$ bits.
+    Desse modo, são adicionados $k_1$ bits zero à mensagem e gerados $k_0$ bits
+    aleatórios, que passam por uma cifra de Feistel de duas rodadas.  
+
+    A função de geração de máscara $MGF1$\citep{mgf1} utiliza como hash base o
+    SHA3 de 256 bits. 
+
+    Como a entrada do OAEP é a concatenação $\texttt{hash} | \texttt{chave do
+    aes} | \texttt{nonce}$, um bloco de $768$ bits ($96$ bytes), a saída
+    tem $768 + 256 + 256 = 1280$ bits ($160$ bytes).
+
+
 % Optimal asymmetric encryption padding (OAEP) }}}
 
 \section{Advanced Encryption Standard (AES)} % {{{
