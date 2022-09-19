@@ -47,25 +47,29 @@
 %                                 Abstract {{{                                 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
-    \todo{Escrever o abstract!}
+    São apresentados os algoritmos e técnicas utilizadas na implementação de um
+    gerador e verificador de assinaturas digitais. Foi escrito um programa em
+    Python que realiza essas tarefas e, mais especificamente, implementa
+    criptografia RSA, AES modo CTR, OAEP e utiliza uma biblioteca para geração
+    de hashes SHA3. Decisões de projeto e detalhes específicos desta
+    implementação também são explicados.
+
 \end{abstract}
 
 \keywords{Criptografia, AES, RSA, OAEP, SHA3, Assinatura, Digital}
 % }}}
 
-\listoftodos
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                Relatório {{{                                 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \section{Introdução} % {{{
-
-% }}}
-
-\section{Visão Geral} % {{{
 \label{sec:visao-geral}
     Neste trabalho foi implementado um gerador e verificador de assinaturas
-    digitais.
+    digitais em Python 3, que possibilita o envio seguro\footnote{Até certo
+    ponto. Em um ambiente de produção, é recomendado o uso de bibliotecas de
+criptografia mais bem testadas} de mensagens, assinadas com uma chave privada
+RSA e cifradas com AES.
 
     O gerador de assinaturas \verb|sign.py| executa os seguintes passos:
 
@@ -76,18 +80,18 @@
         \item Gera o hash SHA3 de 512 bits da mensagem original
         \item Processa o bloco $\texttt{hash} | \texttt{chave do aes} | \texttt{nonce} $
             com OAEP, onde $|$ é a operação de concatenação.
-        \item Cifra o resultado com a chave pública do RSA
+        \item Cifra o resultado com a chave privada do RSA
         \item Escreve a mensagem cifrada com AES na saída padrão e a chave
-            privada em um arquivo de chave, ambos codificados em base64
+            pública em um arquivo de chave, ambos codificados em base64
     \end{enumerate}
 
     O procedimento de verificação em \verb|verify.py| faz o processo contrário e
     verifica a integridade da mensagem, seguindo os passos
 
     \begin{enumerate}
-        \item Dada uma mensagem criptografada e a chave privada do RSA
+        \item Dada uma mensagem criptografada e a chave pública do RSA
         \item Decodifica o bloco $\texttt{hash} | \texttt{chave do aes} | \texttt{nonce} $
-            com a chave privada, passando ele pelo OAEP.
+            com a chave pública, passando ele pelo OAEP.
         \item Decodifica a mensagem cifrada com AES
         \item Gera o hash SHA3 de 512 bits da mensagem decifrada
         \item Compara o hash da mensagem decifrada com o hash esperado para
@@ -108,9 +112,9 @@
         \item Ativação do ambiente, com \verb|source venv/bin/activate|
         \item Instalação de dependências do projeto, por meio de \\ \verb|pip install -r requirements.txt|
         \item Execução do algoritmo de assinatura de um arquivo
-            \verb|input.txt|: \\ \verb|python3 -m sign.sign -i input.txt -k key.secret > output.aes|
+            \verb|input.txt|: \\ \verb|python3 -m sign.sign -i input.txt -k key.pub > output.aes|
         \item Execução do algoritmo de verificação de assinatura: \\
-            \verb|python3 -m sign.verify -i output.aes -k key.secret|
+            \verb|python3 -m sign.verify -i output.aes -k key.pub|
     \end{enumerate}
 
     As opções disponíveis podem ser vistas por meio do comando \verb|python3 -m sign.sign --help| ou \verb|python3 -m sign.verify --help|.
@@ -134,7 +138,6 @@
     \end{itemize}
 % Arquivos Importantes }}}
 
-    \todo{explicar os arquivos}
 % }}}
 
 \section{SHA3} % {{{
@@ -144,7 +147,8 @@ O hash SHA3 não foi implementado do zero. Em vez disso, foi empregada a bibliot
 % SHA3 }}}
 
 \section{Rivest–Shamir–Adleman (RSA)} % {{{
-\todo{provavelmente algo aqui}
+O pacote $\texttt{hash} | \texttt{chave do aes} | \texttt{nonce} $ é cifrado com
+a chave privada do RSA.
 
 \subsection{Geração de Chaves para o RSA} % {{{
 A geração das chaves pública e privada utiizadas no RSA é feita em algumas etapas:
@@ -216,7 +220,8 @@ A implementação de uma rodada da cifração AES pode ser encontrada na funçã
       consulta (definidas em \verb|sign/galois_field.py|), o que simplifica o código e aumenta a performance.
 \end{itemize} 
 
-Também foi implementada a função de extensão de chave, que \todo{this}
+Também foi implementada a função de extensão de chave, que gera blocos de chave
+para cada rodada do AES.
 
 O processo de decifração de um bloco também foi escrito, antes do autor perceber que ele não é utilizado no modo contador.
 
@@ -235,6 +240,19 @@ O processo de decifração de um bloco também foi escrito, antes do autor perce
 
 \section{Conclusão} % {{{
 \label{sec:conclusao}
+    Foi implementado um programa em Python que gera e verifica assinaturas
+    digitais baseadas em RSA e OAEP. Além disso, a mensagem a ser enviada é
+    cifrada com AES no modo CTR. Esse esquema permite que um usuário verifique
+    que uma mensagem foi realmente enviada pelo portador da chave privada do RSA
+    e provê uma garantia de integridade.
+
+    Caso esse esquema fosse utilizado para comunicação de mensagens
+    \textit{peer-to-peer}, seria possível alterar o programa para usar dois
+    pares de chaves de RSA. Desse modo, cada mensagem pode ser cifrada com a
+    chave pública de um dos participantes e a chave privada do outro, o que
+    impossibilita a decifração por outras pessoas que tenham acesso às mensagens
+    cifradas. Como o programa apresentado utiliza apenas a chave de um
+    participante, é possível decifrar a mensagem.
     
 % Conclusão }}}
 

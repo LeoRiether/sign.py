@@ -24,11 +24,11 @@ def read_input(file):
 def read_key(file):
     with open(file, 'rb') as f:
         n = int.from_bytes(b64decode(f.readline()), 'big')
-        d = int.from_bytes(b64decode(f.readline()), 'big')
-        return rsa.SecretKey(n, d)
+        e = int.from_bytes(b64decode(f.readline()), 'big')
+        return rsa.PublicKey(n, e)
 
-def get_rsa(msg: bytes, sk: rsa.SecretKey) -> tuple[bytes, bytes, bytes]:
-    rsa_res = rsa.process(int.from_bytes(msg, 'big'), sk)
+def get_rsa(msg: bytes, pk: rsa.PublicKey) -> tuple[bytes, bytes, bytes]:
+    rsa_res = rsa.process(int.from_bytes(msg, 'big'), pk)
     res = oaep.unmask(rsa_res.to_bytes(96 + 64, 'big'))
     return res[:64], res[64:80], res[80:] # hash, key, nonce
 
@@ -37,9 +37,9 @@ if __name__ == '__main__':
     def log(a):
         sys.stderr.write(str(a))
 
-    sk = read_key(args.key)
+    pk = read_key(args.key)
     aes_msg, rsa_msg = read_input(args.input)
-    hash, key, nonce_bytes = get_rsa(rsa_msg, sk)
+    hash, key, nonce_bytes = get_rsa(rsa_msg, pk)
     nonce = int.from_bytes(nonce_bytes, 'big')
     msg = get_aes(aes_msg, key, nonce)
     expected_hash = sha3_512(msg).digest()
